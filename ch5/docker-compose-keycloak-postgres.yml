@@ -1,0 +1,51 @@
+version: '3.7'
+
+services:
+  postgres:
+      image: postgres
+      volumes:
+        - postgres_data:/var/lib/postgresql/data
+      environment:
+        POSTGRES_DB: keycloak
+        POSTGRES_USER: keycloak
+        POSTGRES_PASSWORD: password
+  keycloak:
+      image: quay.io/keycloak/keycloak:latest
+      environment:
+        DB_VENDOR: POSTGRES
+        DB_ADDR: postgres
+        DB_DATABASE: keycloak
+        DB_USER: keycloak
+        DB_SCHEMA: public
+        DB_PASSWORD: password
+        KC_HTTP_RELATIVE_PATH: /auth
+        KEYCLOAK_ADMIN: admin
+        KEYCLOAK_ADMIN_PASSWORD: admin
+      ports:
+        - 8080:8080
+      command:
+        - start-dev
+      depends_on:
+        - postgres
+
+volumes:
+  postgres_data:
+      driver: local
+
+
+# podman run --name keycloak -d \
+#     -p 8080:8080 \
+#     -p 8443:8443 \
+#     -e KEYCLOAK_ADMIN=admin \
+#     -e KEYCLOAK_ADMIN_PASSWORD=Secret123 \
+#     -e KC_LOG_LEVEL=debug \
+#     -e KC_HOSTNAME=$(hostname):8443 \
+#     -e KC_HTTPS_CERTIFICATE_FILE=/etc/x509/https/tls.crt \
+#     -e KC_HTTPS_CERTIFICATE_KEY_FILE=/etc/x509/https/tls.key \
+#     -e KC_HTTPS_TRUST_STORE_FILE=/etc/x509/https/truststore.keystore \
+#     -e KC_HTTPS_TRUST_STORE_PASSWORD=Secret123 \
+#     -e KC_HTTP_RELATIVE_PATH=/auth \
+#     -v /tmp/https/tls.crt:/etc/x509/https/tls.crt \
+#     -v /tmp/https/tls.key:/etc/x509/https/tls.key \
+#     -v /tmp/https/truststore.keystore:/etc/x509/https/truststore.keystore \
+#     quay.io/keycloak/keycloak:$KC_VERSION start --http-relative-path /auth
